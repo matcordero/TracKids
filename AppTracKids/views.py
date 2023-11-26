@@ -69,32 +69,20 @@ def descargarAudio(request):
         nombre = video.title
         directorio_actual = os.getcwd()
 
-        mp4_file = f"{nombre}.mp4"
         mp3_file = f"{nombre}.mp3"
-
-        # Combina la ruta del directorio actual con los nombres de los archivos
-        mp4_path = os.path.join(directorio_actual, mp4_file)
         mp3_path = os.path.join(directorio_actual, mp3_file)
 
-        # Descargar el video
-        video.streams.get_by_resolution("360p").download(output_path=directorio_actual, filename=mp4_file)
-
-        # Convertir el archivo MP4 a MP3
-        video_clip = VideoFileClip(mp4_path)
-        audio_clip = video_clip.audio
-        audio_clip.write_audiofile(mp3_path)
-
-        # Cerrar los clips para liberar recursos
-        audio_clip.close()
-        video_clip.close()
+        # Descargar solo el audio
+        audio_stream = video.streams.filter(only_audio=True).first()
+        audio_stream.download(output_path=directorio_actual, filename=mp3_file)
 
         # Enviar el archivo MP3 como respuesta
         response = FileResponse(open(mp3_path, 'rb'))
         response['Content-Disposition'] = f'attachment; filename="{mp3_file}"'
-        
+
         return response
     except Exception as e:
-        return JsonResponse({"message": f"Error durante la conversión: {str(e)}"}, status=500)
+        return JsonResponse({"message": f"Error durante la descarga del audio: {str(e)}"}, status=500)
 
 @api_view(['POST'])
 def videoToMp3(request):
