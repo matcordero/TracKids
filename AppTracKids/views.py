@@ -8,6 +8,47 @@ from pydub import AudioSegment
 from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 
+
+@csrf_exempt
+@api_view(['POST'])
+def devolverAudio(request):
+    try:
+        link = request.data.get('link')
+        video = YouTube(link)
+        nombre = video.title
+        audio_stream = video.streams.filter(only_audio=True).first()
+        audio_stream.download()
+        #audio_stream.default_filename = "audio.mp3"
+        nombre = video.title
+        directorio_actual = os.getcwd()
+        
+        mp4_file = nombre+".mp4"
+        mp3_file = nombre+".mp3"
+
+        # Combina la ruta del directorio actual con los nombres de los archivos
+        mp4_path = os.path.join(directorio_actual, mp4_file)
+        mp3_path = os.path.join(directorio_actual, mp3_file)
+
+        # Cargar el archivo de video
+        video_clip = VideoFileClip(mp4_path)
+
+        # Extraer el audio del video
+        audio_clip = video_clip.audio
+
+        # Guardar el audio en formato MP3
+        audio_clip.write_audiofile(mp3_path)
+
+        # Cierra los clips para liberar recursos
+        audio_clip.close()
+        video_clip.close()
+
+        # Envia el archivo MP3 como respuesta
+        response = FileResponse(open(mp3_path, 'rb'))
+        response['Content-Disposition'] = f'attachment; filename="{mp3_file}"'
+        return response
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 @csrf_exempt
 @api_view(['POST'])
 def descargarVideo(request):
@@ -18,6 +59,42 @@ def descargarVideo(request):
         return JsonResponse({"message": "Video descargado con éxito"}, status=201)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+    
+@csrf_exempt
+@api_view(['POST'])
+def descargarAudio(request):
+    try:
+        link = request.data.get('link')
+        video = YouTube(link)
+        nombre = video.title
+        directorio_actual = os.getcwd()
+
+        mp4_file = f"{nombre}.mp4"
+        mp3_file = f"{nombre}.mp3"
+
+        # Combina la ruta del directorio actual con los nombres de los archivos
+        mp4_path = os.path.join(directorio_actual, mp4_file)
+        mp3_path = os.path.join(directorio_actual, mp3_file)
+
+        # Descargar el video
+        video.streams.get_by_resolution("360p").download(output_path=directorio_actual, filename=mp4_file)
+
+        # Convertir el archivo MP4 a MP3
+        video_clip = VideoFileClip(mp4_path)
+        audio_clip = video_clip.audio
+        audio_clip.write_audiofile(mp3_path)
+
+        # Cerrar los clips para liberar recursos
+        audio_clip.close()
+        video_clip.close()
+
+        # Enviar el archivo MP3 como respuesta
+        response = FileResponse(open(mp3_path, 'rb'))
+        response['Content-Disposition'] = f'attachment; filename="{mp3_file}"'
+        
+        return response
+    except Exception as e:
+        return JsonResponse({"message": f"Error durante la conversión: {str(e)}"}, status=500)
 
 @api_view(['POST'])
 def videoToMp3(request):
