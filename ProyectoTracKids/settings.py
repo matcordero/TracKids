@@ -155,3 +155,9 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+CLOUDINARY = {
+    'cloud_name': 'dewiieivf',
+    'api_key': '369268768791138',
+    'api_secret': '6HucCaibPEhkVm-W3JREtd0eNSo',
+}

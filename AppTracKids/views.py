@@ -7,7 +7,7 @@ from moviepy.editor import VideoFileClip
 from pydub import AudioSegment
 from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
-
+import cloudinary.uploader
 
 @csrf_exempt
 @api_view(['POST'])
@@ -81,6 +81,37 @@ def descargarAudio(request):
         response['Content-Disposition'] = f'attachment; filename="{mp3_file}"'
 
         return response
+    except Exception as e:
+        return JsonResponse({"message": f"Error durante la descarga del audio: {str(e)}"}, status=500)
+
+
+@api_view(['POST'])
+def descargarAudio2(request):
+    try:
+        link = request.data.get('link')
+        video = YouTube(link)
+        nombre = video.title
+        directorio_actual = os.getcwd()
+
+        mp3_file = f"{nombre}.mp3"
+        mp3_path = os.path.join(directorio_actual, mp3_file)
+
+        # Descargar solo el audio
+        audio_stream = video.streams.filter(only_audio=True).first()
+        audio_stream.download(output_path=directorio_actual, filename=mp3_file)
+
+        # Subir el archivo a Cloudinary
+        CLOUDINARY = {
+            'cloud_name': 'dewiieivf',
+            'api_key': '369268768791138',
+            'api_secret': '6HucCaibPEhkVm-W3JREtd0eNSo',
+        }
+        cloudinary_response = cloudinary.uploader.upload(mp3_path, resource_type='raw')
+
+        # Obtener la URL del archivo en Cloudinary
+        cloudinary_url = cloudinary_response.get('secure_url')
+
+        return JsonResponse({"cloudinary_url": cloudinary_url}, status=201)
     except Exception as e:
         return JsonResponse({"message": f"Error durante la descarga del audio: {str(e)}"}, status=500)
 

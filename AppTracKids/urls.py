@@ -10,6 +10,7 @@ urlpatterns = [
     #path('encriptar/<str:dato>', encriptar, name='login'),
     path('descargarVideo', descargarVideo, name='descargarVideo'),
     path('descargarAudio', descargarAudio, name='descargarAudio'),
+    path('descargarAudio2', descargarAudio2, name='descargarAudio2'),
     path('existeVideo', existeVideo, name='existeVideo'),
     path('videoToMp3', videoToMp3, name='videoToMp3'),
     path('videoToMp3V2', videoToMp3V2, name='videoToMp3V2'),
