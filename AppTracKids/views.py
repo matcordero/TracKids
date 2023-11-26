@@ -111,6 +111,8 @@ def descargarAudio2(request):
         # Obtener la URL del archivo en Cloudinary
         cloudinary_url = cloudinary_response.get('secure_url')
 
+        os.remove(mp3_path)
+
         return JsonResponse({"cloudinary_url": cloudinary_url}, status=201)
     except Exception as e:
         return JsonResponse({"message": f"Error durante la descarga del audio: {str(e)}"}, status=500)
