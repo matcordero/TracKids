@@ -5,14 +5,19 @@ from rest_framework.decorators import api_view
 from pytube import YouTube
 from moviepy.editor import VideoFileClip
 from pydub import AudioSegment
+from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 
+@csrf_exempt
 @api_view(['POST'])
 def descargarVideo(request):
-    link = request.data.get('link')
-    video=YouTube(link)
-    video.streams.get_by_resolution("360p").download()
-    return JsonResponse({"message": "Usuario Creado con Éxito"}, status=201)
+    try:
+        link = request.data.get('link')
+        video = YouTube(link)
+        video.streams.get_by_resolution("360p").download()
+        return JsonResponse({"message": "Video descargado con éxito"}, status=201)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 @api_view(['POST'])
 def videoToMp3(request):
@@ -37,8 +42,13 @@ def videoToMp3(request):
 def videoToMp3V2(request):
     directorio_actual = os.getcwd()
     try:
-        mp4_file = "Let Me Go.mp4"
-        mp3_file = "Let Me Go.mp3"
+        link = request.data.get('link')
+        video = YouTube(link)
+        nombre = video.title
+        directorio_actual = os.getcwd()
+        
+        mp4_file = nombre+".mp4"
+        mp3_file = nombre+".mp3"
 
         # Combina la ruta del directorio actual con los nombres de los archivos
         mp4_path = os.path.join(directorio_actual, mp4_file)
@@ -67,11 +77,14 @@ def videoToMp3V2(request):
 
 @api_view(['POST'])
 def existeVideo(request):
-    nombre = "Alizée - La Isla Bonita.mp4"
+    
+    link = request.data.get('link')
+    video = YouTube(link)
+    nombre = video.title
     directorio_actual = os.getcwd()
 
     # Combina la ruta del directorio actual con el nombre del archivo
-    ruta_archivo = os.path.join(directorio_actual, nombre)
+    ruta_archivo = os.path.join(directorio_actual, nombre+".mp4")
 
     mensaje = ""
     # Verifica si el archivo existe
